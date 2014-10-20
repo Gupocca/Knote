@@ -11,7 +11,7 @@
 <body>
 	<div class="container-fluid">
 		<div class="row">
-			<div id="tex" class="col-md-6 pane" contenteditable></div>
+			<textarea id="tex" class="col-md-6 pane"></textarea>
 			<div id="output" class="col-md-6 pane"></div>
 		</div>
 		<div class="row">
@@ -47,7 +47,7 @@
 			// set up an "on render" function
 			var renderTex = function() {
 				var math = document.getElementById("output");
-				var input = writer.renderBlock(reader.parse($('#tex').html())).split('$');
+				var input = writer.renderBlock(reader.parse($('#tex').val())).split('$');
 
 				var output = "";
 				var isMath = false;
