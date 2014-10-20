@@ -1,6 +1,7 @@
 .pane {
-	min-height: 200px;
+	min-height: 400px;
 	padding: 20px;
+	border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 #output {
 	/*background: rgba(0,0,0,0.05);*/

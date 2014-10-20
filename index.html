@@ -26,17 +26,42 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 	<script src="js/jquery.hotkeys.js"></script>
 	<script src="js/katex.min.js"></script>
+	<script src="js/stmd.js"></script>
 
 	<script>
+		var writer = new stmd.HtmlRenderer();
+		var reader = new stmd.DocParser();
+
 		$(document).ready(function() {
 			// autofocus
 			document.getElementById("tex").focus();
 
+			// utility function
+			function strip(html)
+			{
+				var tmp = document.createElement("div");
+				tmp.innerHTML = html;
+				return tmp.textContent || tmp.innerText || "";
+			}
+
 			// set up an "on render" function
 			var renderTex = function() {
 				var math = document.getElementById("output");
-				formula = $('#tex').text();
-				katex.render(formula, math);
+				var input = writer.renderBlock(reader.parse($('#tex').html())).split('$');
+
+				var output = "";
+				var isMath = false;
+
+				for (var piece in input) {
+					if (isMath) {
+						output += katex.renderToString(strip(input[piece]));
+					} else {
+						output += input[piece];
+					}
+					isMath = !isMath;
+				}
+
+				$('#output').html(output);
 			};
 
 			// create bindings for rendering
