@@ -68,7 +68,7 @@ input[type="button"] {
 }
 
 @media print {
-	#tex, input {
+	#tex, input, header {
 		display: none;
 	}
 	.pane {
