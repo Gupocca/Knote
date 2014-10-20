@@ -13,9 +13,34 @@ textarea {
    border: none;
 }
 
+header {
+	padding: 0 20px;
+}
+
+header h1 {
+	display: inline-block;
+}
+
+header h1 a, header h1 a:hover {
+	color: black;
+}
+
+header h2 {
+	margin-left: 10px;
+	vertical-align: 5px;
+	display: inline-block;
+	font-size: 13pt;
+	font-style: italic;
+	font-weight: normal;
+	color: #828282;
+}
+
+header h2 a, header h2 a:hover {
+	color: #828282;
+}
+
 #errors {
-	padding: 20px;
-	padding-bottom: 0;
+	padding: 0 20px;
 	display: none;
 }
 
