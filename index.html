@@ -10,6 +10,9 @@
 </head>
 <body>
 	<div class="container-fluid">
+		<div id="errors" class="row">
+			<div id="alert" class="alert alert-danger" role="alert">...</div>
+		</div>
 		<div class="row">
 			<textarea id="tex" class="col-md-6 pane"></textarea>
 			<div id="output" class="col-md-6 pane"></div>
@@ -43,6 +46,8 @@
 
 			// set up an "on render" function
 			var renderTex = function() {
+				$('#errors').css('display', 'none');
+
 				var math = document.getElementById("output");
 				var input = $('#tex').val();
 
@@ -52,16 +57,21 @@
 				var output = "";
 				var isMath = false;
 
-				for (var piece in input) {
-					if (isMath) {
-						output += katex.renderToString(strip(input[piece]));
-					} else {
-						output += input[piece];
+				try {
+					for (var piece in input) {
+						if (isMath) {
+							output += katex.renderToString(strip(input[piece]));
+						} else {
+							output += input[piece];
+						}
+						isMath = !isMath;
 					}
-					isMath = !isMath;
-				}
 
-				$('#output').html(output);
+					$('#output').html(output);
+				} catch (err) {
+					$('#errors').css('display', 'block');
+					$('#alert').html("<strong>Error!</strong> " + err.message);
+				}
 			};
 
 			// autofocus

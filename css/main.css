@@ -13,6 +13,12 @@ textarea {
    border: none;
 }
 
+#errors {
+	padding: 20px;
+	padding-bottom: 0;
+	display: none;
+}
+
 #output {
 	font-family: 'Computer Modern';
 	font-size: 15pt;
