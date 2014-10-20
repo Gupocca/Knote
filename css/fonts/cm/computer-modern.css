@@ -1,0 +1,35 @@
+@font-face {
+    font-family: 'Computer Modern';
+    src: url('cmunrb-webfont.eot');
+    src: url('cmunrb-webfont.eot?#iefix') format('embedded-opentype'),
+         url('cmunrb-webfont.woff2') format('woff2'),
+         url('cmunrb-webfont.woff') format('woff'),
+         url('cmunrb-webfont.ttf') format('truetype'),
+         url('cmunrb-webfont.svg#cmu_serif_extraBdnonEx') format('svg');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Computer Modern';
+    src: url('cmunti-webfont.eot');
+    src: url('cmunti-webfont.eot?#iefix') format('embedded-opentype'),
+         url('cmunti-webfont.woff2') format('woff2'),
+         url('cmunti-webfont.woff') format('woff'),
+         url('cmunti-webfont.ttf') format('truetype'),
+         url('cmunti-webfont.svg#cmu_serifitalic') format('svg');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Computer Modern';
+    src: url('cmunrm-webfont.eot');
+    src: url('cmunrm-webfont.eot?#iefix') format('embedded-opentype'),
+         url('cmunrm-webfont.woff2') format('woff2'),
+         url('cmunrm-webfont.woff') format('woff'),
+         url('cmunrm-webfont.ttf') format('truetype'),
+         url('cmunrm-webfont.svg#cmu_serifroman') format('svg');
+    font-weight: 400;
+    font-style: normal;
+}

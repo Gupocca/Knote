@@ -4,14 +4,23 @@
 	border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 
+h1, h2, h3, h4, h5 {
+	font-weight: bold;
+}
+
 textarea {
    resize: none;
    border: none;
 }
 
 #output {
-	font-size: 12pt;
+	font-family: 'Computer Modern';
+	font-size: 15pt;
 	overflow-y: auto;
+}
+
+#output .katex {
+	font-size: 15pt;
 }
 
 #tex {
