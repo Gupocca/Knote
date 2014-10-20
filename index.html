@@ -33,9 +33,6 @@
 		var reader = new stmd.DocParser();
 
 		$(document).ready(function() {
-			// autofocus
-			document.getElementById("tex").focus();
-
 			// utility function
 			function strip(html)
 			{
@@ -47,7 +44,10 @@
 			// set up an "on render" function
 			var renderTex = function() {
 				var math = document.getElementById("output");
-				var input = writer.renderBlock(reader.parse($('#tex').val())).split('$');
+				var input = $('#tex').val();
+
+				localStorage.setItem("texData", input);
+				input = writer.renderBlock(reader.parse(input)).split('$');
 
 				var output = "";
 				var isMath = false;
@@ -63,6 +63,17 @@
 
 				$('#output').html(output);
 			};
+
+			// autofocus
+			$('#tex').focus();
+			
+			// local storage
+			var priorData = localStorage.getItem("texData");
+			if (priorData)
+			{
+				$('#tex').val(priorData);
+				renderTex();
+			}
 
 			// create bindings for rendering
 			$('#render').click(renderTex);
