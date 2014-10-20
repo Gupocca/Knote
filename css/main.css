@@ -1,0 +1,19 @@
+.pane {
+	min-height: 200px;
+	padding: 20px;
+}
+#output {
+	/*background: rgba(0,0,0,0.05);*/
+}
+#tex {
+	background: rgba(0,0,0,0.03);
+}
+
+#render-row {
+	text-align: center;
+	padding: 20px;
+}
+
+#render {
+	padding: 7px 20px;
+}
