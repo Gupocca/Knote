@@ -23,6 +23,15 @@ textarea {
 	padding: 20px;
 }
 
-#render {
+input[type="button"] {
 	padding: 7px 20px;
+}
+
+@media print {
+	#tex, input {
+		display: none;
+	}
+	.pane {
+		border: none;
+	}
 }
