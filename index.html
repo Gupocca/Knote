@@ -60,14 +60,30 @@
 
 				var output = "";
 				var isMath = false;
+				var isCentered = false;
 
 				try {
 					for (var piece in input) {
+						if (input[piece] == "") {
+							// double dollar signs escape to make math centered
+							isMath = !isMath;
+							isCentered = !isCentered;
+						}
+
 						if (isMath) {
-							output += katex.renderToString(strip(input[piece]));
+							var rendered = katex.renderToString(strip(input[piece]));
+
+							if (isCentered) {
+								output += '<div class="text-center">' + rendered + '</div>';
+							} else {
+								output += rendered;
+							}
+
+							isCentered = false;
 						} else {
 							output += input[piece];
 						}
+
 						isMath = !isMath;
 					}
 
