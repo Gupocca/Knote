@@ -54,6 +54,11 @@ header h2 a, header h2 a:hover {
 	text-align: center;
 }
 
+#dropbox-logo {
+	font-size: 100pt;
+	color: #007ee5;
+}
+
 #output {
 	font-family: 'Computer Modern';
 	font-size: 15pt;

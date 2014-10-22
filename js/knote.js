@@ -11,12 +11,22 @@ $(document).ready(function() {
 		}
 	}
 
+	var showError = function(err) {
+		$('#errors').css('display', 'block');
+		$('#alert').html("<strong>Error!</strong> " + err);
+	}
+
+	var hideError = function() {
+		$('#errors').css('display', 'none');
+	}
+
 	var client = new Dropbox.Client({key: "7nj69doyzp49ge1"});
 	var allData = null;
 
 	client.authenticate({interactive: false}, function (error) {
 		if (error) {
-			alert('Authentication error: ' + error);
+			showError("Unable to authenticate.")
+			$('#dropbox-button').addClass('disabled');
 		}
 	});
 
@@ -32,7 +42,8 @@ $(document).ready(function() {
 	$('#dropbox-button').click(function() {
 		client.authenticate({}, function (error) {
 			if (error) {
-				alert('Authentication error: ' + error);
+				showError("Unable to authenticate.")
+				$('#dropbox-button').addClass('disabled');
 			}
 			checkAuth();
 		});
@@ -43,7 +54,7 @@ $(document).ready(function() {
 		var datastoreManager = client.getDatastoreManager();
 		datastoreManager.openDefaultDatastore(function (error, datastore) {
 			if (error) {
-				alert('Error opening default datastore: ' + error);
+				showError("Unable to access data.");
 			}
 			
 			allData = datastore;
@@ -105,7 +116,7 @@ $(document).ready(function() {
 
 	// set up an "on render" function
 	var renderTex = function() {
-		$('#errors').css('display', 'none');
+		hideError();
 
 		var math = document.getElementById("output");
 		var input = $('#tex').val();
@@ -144,8 +155,7 @@ $(document).ready(function() {
 
 			$('#output').html(output);
 		} catch (err) {
-			$('#errors').css('display', 'block');
-			$('#alert').html("<strong>Error!</strong> " + err.message);
+			showError(err.message);
 		}
 	};
 
