@@ -46,6 +46,14 @@ header h2 a, header h2 a:hover {
 	display: none;
 }
 
+#app {
+	display: none;
+}
+
+#dropbox {
+	text-align: center;
+}
+
 #output {
 	font-family: 'Computer Modern';
 	font-size: 15pt;

@@ -17,98 +17,31 @@
 		<div id="errors" class="row">
 			<div id="alert" class="alert alert-danger" role="alert">...</div>
 		</div>
-		<div class="row">
-			<textarea id="tex" class="col-md-6 pane"></textarea>
-			<div id="output" class="col-md-6 pane"></div>
-		</div>
-		<div class="row">
-			<div id="render-row" class="col-md-12">
-				<input type="button" id="render" value="Render">
+		<div id="app">
+			<div class="row">
+				<textarea id="tex" class="col-md-6 pane"></textarea>
+				<div id="output" class="col-md-6 pane"></div>
 			</div>
+			<div class="row">
+				<div id="render-row" class="col-md-12">
+					<input type="button" id="render" value="Render">
+				</div>
+			</div>
+		</div>
+		<div id="dropbox">
+			<input id="dropbox-button" type="button" class="btn btn-primary" value="Link to Dropbox">
 		</div>
 	</div>
 
 	<!-- SCRIPTS -->
 	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<script src="https://www.dropbox.com/static/api/dropbox-datastores-1.2-latest.js" type="text/javascript"></script>
+
 	<script src="js/jquery.hotkeys.min.js"></script>
 	<script src="js/katex.min.js"></script>
 	<script src="js/stmd.min.js"></script>
 
-	<script>
-		var writer = new stmd.HtmlRenderer();
-		var reader = new stmd.DocParser();
-
-		$(document).ready(function() {
-			// utility function
-			function strip(html)
-			{
-				var tmp = document.createElement("div");
-				tmp.innerHTML = html;
-				return tmp.textContent || tmp.innerText || "";
-			}
-
-			// set up an "on render" function
-			var renderTex = function() {
-				$('#errors').css('display', 'none');
-
-				var math = document.getElementById("output");
-				var input = $('#tex').val();
-
-				localStorage.setItem("texData", input);
-				input = writer.renderBlock(reader.parse(input)).split('$');
-
-				var output = "";
-				var isMath = false;
-				var isCentered = false;
-
-				try {
-					for (var piece in input) {
-						if (input[piece] == "") {
-							// double dollar signs escape to make math centered
-							isMath = !isMath;
-							isCentered = !isCentered;
-						}
-
-						if (isMath) {
-							var rendered = katex.renderToString(strip(input[piece]));
-
-							if (isCentered) {
-								output += '<div class="text-center">' + rendered + '</div>';
-							} else {
-								output += rendered;
-							}
-
-							isCentered = false;
-						} else {
-							output += input[piece];
-						}
-
-						isMath = !isMath;
-					}
-
-					$('#output').html(output);
-				} catch (err) {
-					$('#errors').css('display', 'block');
-					$('#alert').html("<strong>Error!</strong> " + err.message);
-				}
-			};
-
-			// autofocus
-			$('#tex').focus();
-			
-			// local storage
-			var priorData = localStorage.getItem("texData");
-			if (priorData)
-			{
-				$('#tex').val(priorData);
-				renderTex();
-			}
-
-			// create bindings for rendering
-			$('#render').click(renderTex);
-			$('#tex').bind('keydown', 'ctrl+return', renderTex);
-		});
-	</script>
+	<script src="js/knote.js"></script>
 </body>
 </html>
