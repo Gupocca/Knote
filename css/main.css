@@ -71,7 +71,7 @@ input[type="button"] {
     padding: 7px 20px;
 }
 @media print {
-    #tex, input, header {
+    #tex, input, header, #render-row {
         display: none;
     }
     .pane {
