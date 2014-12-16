@@ -1,15 +1,3 @@
-.pane {
-    height: 250px;
-    padding: 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-}
-@media (min-width: 768px) { .pane { height: 300px; } }
-@media (max-width: 992px) { #output { margin-top: 20px; } }
-@media (min-width: 992px) { .pane { height: 450px; } }
-@media (min-width: 1200px) { .pane { height: 600px; } }
-@media (min-width: 1700px) { .pane { height: 730px; } }
-
 h1, h2, h3, h4, h5 {
     font-weight: bold;
 }
@@ -18,26 +6,25 @@ textarea {
     border: none;
     width: 100%;
 }
-
 header {
     padding: 0 20px;
 }
-
 header h1 {
-	margin-left: -15px;
+    margin-left: -15px;
     display: inline-block;
 }
-
-header h1 a i { padding-right: 4px; }
-header h1 a { color: black; }
-
+header h1 a i {
+    padding-right: 4px;
+}
+header h1 a {
+    color: black;
+}
 header h1 a:hover {
-	color: #428bca;
+    color: #428bca;
     text-decoration: none;
 }
-
 header h2 {
-	font-family: 'Computer Modern';
+    font-family: 'Computer Modern';
     margin-left: 10px;
     vertical-align: 5px;
     display: inline-block;
@@ -117,7 +104,7 @@ a.remove-notepad:hover {
     color: #8A2913;
 }
 #current-notepad-col {
-	padding: 12px 0;
+    padding: 12px 0;
 }
 #current-notepad {
     display: none;
@@ -132,10 +119,41 @@ a.remove-notepad:hover {
 #current-notepad:hover::before {
     color: #787878;
 }
+.pane {
+    height: 250px;
+    padding: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+@media (min-width: 768px) {
+    .pane {
+        height: 300px;
+    }
+}
+@media (max-width: 992px) {
+    #output {
+        margin-top: 20px;
+    }
+}
+@media (min-width: 992px) {
+    .pane {
+        height: 450px;
+    }
+}
+@media (min-width: 1200px) {
+    .pane {
+        height: 600px;
+    }
+}
+@media (min-width: 1700px) {
+    .pane {
+        height: 730px;
+    }
+}
 @media print {
-	html {
-		font-size: 12pt;
-	}
+    html {
+        font-size: 12pt;
+    }
     #tex, input, header, #render-row {
         display: none;
     }
