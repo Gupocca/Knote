@@ -105,5 +105,23 @@ input[type="button"] {
 a.swap-notepad {
 	margin-right: 20px;
 }
-a.remove-notepad {	color: #B33215; }
+a.remove-notepad { color: #B33215; }
 a.remove-notepad:hover { color: #8A2913; }
+
+#current-notepad {
+	display: inline-block;
+	padding: 8px 14px;
+	float: right;
+	margin-top: 12px;
+	font-size: 14pt;
+}
+
+#current-notepad::before {
+	color: #999999;
+    content: "notepad: ";
+}
+
+#current-notepad:hover {
+	cursor: pointer;
+	cursor: hand;
+}

@@ -4,10 +4,11 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<title>Knote</title>
-
+	
 	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.1.1/katex.min.css">
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:400" type="text/css">
 	<link rel="stylesheet" href="css/fonts/cm/computer-modern.css">
 	<link rel="stylesheet" href="css/main.css">
 </head>
@@ -15,7 +16,8 @@
 	<div class="container-fluid">
 		<header class="row">
 			<h1><a href="https://github.com/Gupocca/Knote">Knote</a></h1>
-			<h2>by <a href="http://stephenhoerner.com">Stephen Hoerner</a>
+			<h2>by <a href="http://stephenhoerner.com">Stephen Hoerner</a></h2>
+			<div id="current-notepad" class="btn btn-default"></div>
 		</header>
 		<div id="errors" class="row">
 			<div id="alert" class="alert alert-danger" role="alert">...</div>
@@ -35,8 +37,7 @@
 		<div id="dropbox">
 			<div id="dropbox-logo"><i class="fa fa-dropbox"></i></div>
 			<a id="dropbox-button" type="button" class="btn btn-default">Link to Dropbox</a>
-		</div>
-		
+		</div>		
 	</div>
 	<div id="notepad-selection"></div>
 	<form id="notepad-creation" role="form" action="#">

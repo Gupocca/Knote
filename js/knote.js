@@ -33,6 +33,8 @@ $(document).ready(function() {
 			}
 		}
 
+		$('#current-notepad').text(currentNotepad);
+
 		var incoming = getData(currentNotepad);
 		if (incoming != $('#tex').val()) {
 			$('#tex').val(getData(currentNotepad));
