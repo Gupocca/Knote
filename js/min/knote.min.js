@@ -1,6 +1,7 @@
 var writer = new stmd.HtmlRenderer();
 var reader = new stmd.DocParser();
-var currentNotepad = '1234';
+var defaultNotepad = 'default';
+var currentNotepad = defaultNotepad;
 
 // sanitization
 var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
@@ -18,16 +19,30 @@ function removeTags(html) {
 $(document).ready(function() {
 
 	var populateNotepad = function() { 
+		// check if we're using the default notepad
+		if (currentNotepad == defaultNotepad) {
+			var names = getNotepadNames();
+			if (names.length > 0) {
+				currentNotepad = names[0];
+			}
+			else {
+				// there are no notepads; create the default one
+				$.get("defaultFile.md", function(input) {
+					setData(defaultNotepad, input);
+				});
+			}
+		}
+
 		var incoming = getData(currentNotepad);
 		if (incoming != $('#tex').val()) {
 			$('#tex').val(getData(currentNotepad));
 			renderTex();
 		}
 
-		renderNotebookSelection();
+		renderNotepadSelection();
 	}
 
-	var renderNotebookSelection = function() {
+	var renderNotepadSelection = function() {
 		var names = getNotepadNames();
 		var output = '<ul>';
 
@@ -48,21 +63,21 @@ $(document).ready(function() {
 		return str === null || str.match(/^ *$/) !== null;
 	}
 
-	var createNewNotebook = function() {
-		var name = $('#new-notebook-name').val();
-		$('#new-notebook-name').val('');
+	var createNewNotepad = function() {
+		var name = $('#new-notepad-name').val();
+		$('#new-notepad-name').val('');
 
 		if (isExistingNotepad(name)) {
-			alert("Notebook already exists");
+			alert("notepad already exists");
 		}
 		else {
 			setData(name,'');
-			renderNotebookSelection();
+			renderNotepadSelection();
 		}	
 	}
 
-	$('#add-notebook').click(function () {
-		createNewNotebook();
+	$('#notepad-creation').submit(function () {
+		createNewNotepad();
 		return false;
 	});
 
@@ -158,6 +173,27 @@ $(document).ready(function() {
 			return results[0].get('data');
 		}
 		return '';
+	}
+
+	var deleteNotepad = function(key) {
+		if (allData === null) {
+			return;
+		}
+
+		var notepadTable = allData.getTable('notepads');
+		var results = notepadTable.query({padname: key});
+
+		if (results.length > 0) {
+			results[0].deleteRecord();
+		}
+	}
+
+	var deleteAllNotepads = function(key) {
+		var names = getNotepadNames();
+		for (var i = 0; i < names.length; i++)
+		{
+			deleteNotepad(names[i]);
+		}
 	}
 
 	var isExistingNotepad = function(key) {

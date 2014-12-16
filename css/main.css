@@ -97,7 +97,7 @@ input[type="button"] {
 	}
 }
 
-#notebook-creation input {
+#notepad-creation input {
 	width: 200px;
 	display: inline-block;
 }
