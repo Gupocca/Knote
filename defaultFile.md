@@ -1,1 +1,1 @@
-Hello default!
+This is the default notepad. (More info to come).
