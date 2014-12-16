@@ -101,3 +101,9 @@ input[type="button"] {
 	width: 200px;
 	display: inline-block;
 }
+
+a.swap-notepad {
+	margin-right: 20px;
+}
+a.remove-notepad {	color: #B33215; }
+a.remove-notepad:hover { color: #8A2913; }

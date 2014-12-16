@@ -47,13 +47,30 @@ $(document).ready(function() {
 		var output = '<ul>';
 
 		for (var i = 0; i < names.length; i++) {
-			output += '<li><a href="#">'+removeTags(names[i])+'</a></li>';
+			var name = removeTags(names[i]);
+			output += '<li><a class="swap-notepad" href="#">'+name+'</a>'
+					+ '<a class="remove-notepad" href="#" data-notepad="'+name+'"><i class="fa fa-times"></i></a></li>';
 		}
 		output += '</ul>';
 		$('#notepad-selection').html(output);
 
-		$('#notepad-selection li a').click(function () {
+		$('#notepad-selection li a.swap-notepad').click(function () {
 			currentNotepad = $(this).text();
+			populateNotepad();
+			return false;
+		});
+
+		$('#notepad-selection li a.remove-notepad').click(function () {
+			var name = $(this).data('notepad');
+			var confirmation = confirm('Are you sure you want to delete notepad "'+name+'"?');
+
+			if (confirmation) {
+				if (name == currentNotepad) {
+					currentNotepad = defaultNotepad;
+				}
+				deleteNotepad(name);
+			}
+
 			populateNotepad();
 			return false;
 		});
@@ -70,7 +87,7 @@ $(document).ready(function() {
 		if (isEmptyOrSpaces(name)) {
 			return;
 		}
-		
+
 		if (isExistingNotepad(name)) {
 			alert("notepad already exists");
 		}
