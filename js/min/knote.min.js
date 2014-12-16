@@ -1,8 +1,20 @@
-
 var writer = new stmd.HtmlRenderer();
 var reader = new stmd.DocParser();
 var currentNotepad = '1234';
 
+// sanitization
+var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
+var tagOrComment = new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b'+tagBody+'>[\\s\\S]*?</script\\s*|style\\b'+tagBody +'>[\\s\\S]*?</style\\s*|/?[a-z]'+tagBody+')>','gi');
+function removeTags(html) {
+	var oldHtml;
+	do {
+		oldHtml = html;
+		html = html.replace(tagOrComment, '');
+	} while (html !== oldHtml);
+	return html.replace(/</g, '&lt;');
+}
+
+// bulk of the code
 $(document).ready(function() {
 
 	var populateNotepad = function() { 
@@ -20,16 +32,39 @@ $(document).ready(function() {
 		var output = '<ul>';
 
 		for (var i = 0; i < names.length; i++) {
-			output += '<li>'+names[i]+'</li>';
+			output += '<li><a href="#">'+removeTags(names[i])+'</a></li>';
 		}
 		output += '</ul>';
 		$('#notepad-selection').html(output);
 
-		$('#notepad-selection li').click(function () {
+		$('#notepad-selection li a').click(function () {
 			currentNotepad = $(this).text();
 			populateNotepad();
+			return false;
 		});
 	}
+
+	function isEmptyOrSpaces(str){
+		return str === null || str.match(/^ *$/) !== null;
+	}
+
+	var createNewNotebook = function() {
+		var name = $('#new-notebook-name').val();
+		$('#new-notebook-name').val('');
+
+		if (isExistingNotepad(name)) {
+			alert("Notebook already exists");
+		}
+		else {
+			setData(name,'');
+			renderNotebookSelection();
+		}	
+	}
+
+	$('#add-notebook').click(function () {
+		createNewNotebook();
+		return false;
+	});
 
 	var showError = function(err) {
 		$('#errors').css('display', 'block');
@@ -122,9 +157,17 @@ $(document).ready(function() {
 		if (results.length > 0) {
 			return results[0].get('data');
 		}
-		else {
-			return '';
+		return '';
+	}
+
+	var isExistingNotepad = function(key) {
+		if (allData === null) {
+			return false;
 		}
+
+		var notepadTable = allData.getTable('notepads');
+		var results = notepadTable.query({padname: key});
+		return results.length > 0;
 	}
 
 	var getNotepadNames = function() {

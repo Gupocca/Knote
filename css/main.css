@@ -96,3 +96,8 @@ input[type="button"] {
 		border: none;
 	}
 }
+
+#notebook-creation input {
+	width: 200px;
+	display: inline-block;
+}
