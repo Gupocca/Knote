@@ -132,5 +132,7 @@ a.remove-notepad:hover {
     .pane {
         border: none;
         height: auto;
+        width: auto;
+        overflow: visible;
     }
 }
