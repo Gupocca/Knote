@@ -128,6 +128,7 @@ $(document).ready(function() {
 		if (client.isAuthenticated()) {
 			$('#dropbox').css('display','none');
 			$('#app').css('display','block');
+			$('#current-notepad').css('display','inline-block');
 		}
 	};
 

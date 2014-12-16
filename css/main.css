@@ -101,7 +101,7 @@ a.remove-notepad:hover {
     color: #8A2913;
 }
 #current-notepad {
-    display: inline-block;
+    display: none;
     padding: 8px 14px;
     float: right;
     margin-top: 12px;
