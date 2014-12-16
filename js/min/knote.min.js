@@ -262,6 +262,10 @@ $(document).ready(function() {
 		return tmp.textContent || tmp.innerText || "";
 	}
 
+	String.prototype.endsWith = function(suffix) {
+	    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+
 	// set up an "on render" function
 	var renderTex = function() {
 		hideError();
@@ -270,6 +274,7 @@ $(document).ready(function() {
 		var input = $('#tex').val();
 
 		setData(currentNotepad, input);
+		input = input.replace('\\\$','\\\\\$');
 		input = writer.renderBlock(reader.parse(input)).split('$');
 
 		var output = "";
@@ -278,7 +283,9 @@ $(document).ready(function() {
 
 		try {
 			for (var piece in input) {
-				if (input[piece] == "") {
+				
+
+				if (input[piece] == '') {
 					// double dollar signs escape to make math centered
 					isMath = !isMath;
 					isCentered = !isCentered;
@@ -294,8 +301,15 @@ $(document).ready(function() {
 					}
 
 					isCentered = false;
+
+					
 				} else {
 					output += input[piece];
+
+					if (input[piece].endsWith('\\')) {
+						output += input[piece].substring(0,input[piece].length-1) + '$';
+						continue;
+					}
 				}
 
 				isMath = !isMath;
