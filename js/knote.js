@@ -67,6 +67,10 @@ $(document).ready(function() {
 		var name = $('#new-notepad-name').val();
 		$('#new-notepad-name').val('');
 
+		if (isEmptyOrSpaces(name)) {
+			return;
+		}
+		
 		if (isExistingNotepad(name)) {
 			alert("notepad already exists");
 		}
