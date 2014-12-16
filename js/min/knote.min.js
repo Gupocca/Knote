@@ -50,7 +50,7 @@ $(document).ready(function() {
 
 		for (var i = 0; i < names.length; i++) {
 			var name = removeTags(names[i]);
-			output += '<li><a class="swap-notepad" href="#">'+name+'</a>'
+			output += '<li><a class="swap-notepad" href="#" data-dismiss="modal">'+name+'</a>'
 					+ '<a class="remove-notepad" href="#" data-notepad="'+name+'"><i class="fa fa-times"></i></a></li>';
 		}
 		output += '</ul>';
@@ -59,6 +59,7 @@ $(document).ready(function() {
 		$('#notepad-selection li a.swap-notepad').click(function () {
 			currentNotepad = $(this).text();
 			populateNotepad();
+			$('#notepadModal').modal('hide');
 			return false;
 		});
 

@@ -1,127 +1,124 @@
 .pane {
-	height: 400px;
-	padding: 20px;
-	border-top: 1px solid rgba(0,0,0,0.2);
-	border-bottom: 1px solid rgba(0,0,0,0.2);
+    height: 400px;
+    padding: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
-
 h1, h2, h3, h4, h5 {
-	font-weight: bold;
+    font-weight: bold;
 }
-
 textarea {
-   resize: none;
-   border: none;
-   width: 100%;
+    resize: none;
+    border: none;
+    width: 100%;
 }
-
 header {
-	padding: 0 20px;
+    padding: 0 20px;
 }
-
 header h1 {
-	display: inline-block;
+    display: inline-block;
 }
-
 header h1 a, header h1 a:hover {
-	color: black;
+    color: black;
 }
-
 header h2 {
-	margin-left: 10px;
-	vertical-align: 5px;
-	display: inline-block;
-	font-size: 13pt;
-	font-style: italic;
-	font-weight: normal;
-	color: #828282;
+    margin-left: 10px;
+    vertical-align: 5px;
+    display: inline-block;
+    font-size: 13pt;
+    font-style: italic;
+    font-weight: normal;
+    color: #828282;
 }
-
 header h2 a, header h2 a:hover {
-	color: #828282;
+    color: #828282;
 }
-
 #hint {
-	margin-top: 8px;
-	color: #8F8F8F;
-	font-size: 10pt;
+    margin-top: 8px;
+    color: #8F8F8F;
+    font-size: 10pt;
 }
-
 #errors {
-	padding: 0 20px;
-	display: none;
+    padding: 0 20px;
+    display: none;
 }
-
 #app {
-	display: none;
+    display: none;
 }
-
 #dropbox {
-	text-align: center;
+    text-align: center;
 }
-
 #dropbox-logo {
-	font-size: 100pt;
-	color: #007ee5;
+    font-size: 100pt;
+    color: #007ee5;
 }
-
 #output {
-	font-family: 'Computer Modern';
-	font-size: 15pt;
-	overflow-y: auto;
+    font-family: 'Computer Modern';
+    font-size: 15pt;
+    overflow-y: auto;
 }
-
 #output .katex {
-	font-size: 15pt;
+    font-size: 15pt;
 }
-
 #tex {
-	background: rgba(0,0,0,0.03);
+    background: rgba(0, 0, 0, 0.03);
 }
-
 #render-row {
-	text-align: center;
-	padding: 20px;
+    text-align: center;
+    padding: 20px;
 }
-
 input[type="button"] {
-	padding: 7px 20px;
+    padding: 7px 20px;
 }
-
 @media print {
-	#tex, input, header {
-		display: none;
-	}
-	.pane {
-		border: none;
-	}
+    #tex, input, header {
+        display: none;
+    }
+    .pane {
+        border: none;
+    }
 }
-
 #notepad-creation input {
-	width: 200px;
-	display: inline-block;
+    width: 200px;
+    display: inline-block;
 }
-
 a.swap-notepad {
-	margin-right: 20px;
+    padding: 10px 15px;
 }
-a.remove-notepad { color: #B33215; }
-a.remove-notepad:hover { color: #8A2913; }
-
+#notepad-selection ul {
+    margin: 0;
+    padding: 0;
+}
+#notepad-selection li {
+    font-size: 12pt;
+    list-style: none;
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+#notepad-selection li:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+#notepad-selection li:last-of-type {
+    border-bottom: none;
+}
+a.remove-notepad {
+    color: #B33215;
+    float: right;
+}
+a.remove-notepad:hover {
+    color: #8A2913;
+}
 #current-notepad {
-	display: inline-block;
-	padding: 8px 14px;
-	float: right;
-	margin-top: 12px;
-	font-size: 14pt;
+    display: inline-block;
+    padding: 8px 14px;
+    float: right;
+    margin-top: 12px;
+    font-size: 14pt;
 }
-
 #current-notepad::before {
-	color: #999999;
+    color: #999999;
     content: "notepad: ";
 }
-
-#current-notepad:hover {
-	cursor: pointer;
-	cursor: hand;
+#current-notepad:hover::before {
+    color: #787878;
 }
