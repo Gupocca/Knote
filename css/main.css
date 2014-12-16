@@ -54,7 +54,7 @@ header h2 a, header h2 a:hover {
 }
 #output {
     font-family: 'Computer Modern';
-    font-size: 15pt;
+    font-size: 14pt;
     overflow-y: auto;
 }
 #output .katex {
@@ -69,14 +69,6 @@ header h2 a, header h2 a:hover {
 }
 input[type="button"] {
     padding: 7px 20px;
-}
-@media print {
-    #tex, input, header, #render-row {
-        display: none;
-    }
-    .pane {
-        border: none;
-    }
 }
 #notepad-creation input {
     width: 200px;
@@ -121,4 +113,16 @@ a.remove-notepad:hover {
 }
 #current-notepad:hover::before {
     color: #787878;
+}
+@media print {
+	html {
+		font-size: 12pt;
+	}
+    #tex, input, header, #render-row {
+        display: none;
+    }
+    .pane {
+        border: none;
+        height: auto;
+    }
 }
