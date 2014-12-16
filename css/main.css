@@ -1,9 +1,15 @@
 .pane {
-    height: 400px;
+    height: 250px;
     padding: 20px;
     border-top: 1px solid rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
+@media (min-width: 768px) { .pane { height: 300px; } }
+@media (max-width: 992px) { #output { margin-top: 20px; } }
+@media (min-width: 992px) { .pane { height: 450px; } }
+@media (min-width: 1200px) { .pane { height: 600px; } }
+@media (min-width: 1700px) { .pane { height: 730px; } }
+
 h1, h2, h3, h4, h5 {
     font-weight: bold;
 }
@@ -100,12 +106,14 @@ a.remove-notepad {
 a.remove-notepad:hover {
     color: #8A2913;
 }
+#current-notepad-col {
+	padding: 12px 0;
+}
 #current-notepad {
     display: none;
     padding: 8px 14px;
-    float: right;
-    margin-top: 12px;
     font-size: 14pt;
+    width: 100%;
 }
 #current-notepad::before {
     color: #999999;
