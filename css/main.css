@@ -18,20 +18,30 @@ textarea {
     border: none;
     width: 100%;
 }
+
 header {
     padding: 0 20px;
 }
+
 header h1 {
+	margin-left: -15px;
     display: inline-block;
 }
-header h1 a, header h1 a:hover {
-    color: black;
+
+header h1 a i { padding-right: 4px; }
+header h1 a { color: black; }
+
+header h1 a:hover {
+	color: #428bca;
+    text-decoration: none;
 }
+
 header h2 {
+	font-family: 'Computer Modern';
     margin-left: 10px;
     vertical-align: 5px;
     display: inline-block;
-    font-size: 13pt;
+    font-size: 15pt;
     font-style: italic;
     font-weight: normal;
     color: #828282;
