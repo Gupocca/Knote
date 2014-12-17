@@ -23,6 +23,7 @@ header h1 a {
 }
 header h1 a:hover, header h1 a:active, header h1 a:visited {
     color: #428bca;
+    text-decoration: none;
 }
 header h2 {
     font-family: 'Computer Modern';
