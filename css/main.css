@@ -65,6 +65,7 @@ header h2 a, header h2 a:hover {
 }
 #tex {
     background: rgba(0, 0, 0, 0.03);
+    font-family: 'Roboto', arial, sans-serif;
 }
 #render-row {
     text-align: center;
