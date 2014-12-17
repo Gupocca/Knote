@@ -10,7 +10,9 @@ header {
     padding: 0 20px;
 }
 header h1 {
+    font-family: 'Roboto', arial, sans-serif;
     margin-left: -15px;
+    margin-top: 17px;
     display: inline-block;
 }
 header h1 a i {
@@ -113,8 +115,12 @@ a.remove-notepad:hover {
     font-size: 14pt;
     width: 100%;
 }
+body {
+        font-family: 'Roboto', arial, sans-serif;
+
+}
 #current-notepad::before {
-    color: #999999;
+    color: #C2C2C2;
     content: "notepad: ";
 }
 #current-notepad:hover::before {
