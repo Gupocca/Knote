@@ -266,7 +266,22 @@ $(document).ready(function() {
 	    return this.indexOf(suffix, this.length - suffix.length) !== -1;
 	};
 
-	// set up an "on render" function
+	var renderMath = function(data) {
+		return katex.renderToString(strip(data));
+	}
+
+	var renderCenteredMath = function(data) {
+		return '<div class="text-center">' + katex.renderToString(strip(data)) + '</div>';
+	}
+
+	var charExists = function(str, index, value) {
+		return index >= 0 && index < str.length && str.charAt(index) == value;
+	};
+
+	function replaceAll(string, find, replace) {
+		return string.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+	}
+
 	var renderTex = function() {
 		hideError();
 
@@ -274,53 +289,61 @@ $(document).ready(function() {
 		var input = $('#tex').val();
 
 		setData(currentNotepad, input);
-		input = input.replace('\\\$','\\\\\$');
-		input = writer.renderBlock(reader.parse(input)).split('$');
+		input = input.split('\\\$').join('\\\\\$')	
+		input = writer.renderBlock(reader.parse(input));
 
-		var output = "";
-		var isMath = false;
-		var isCentered = false;
+		var index = -1;
+		var prevIndex = -1;
+		var normalMathMode = false;
+		var centeredMathMode = false;
+		var output = '';
 
 		try {
-			for (var piece in input) {
-				
-
-				if (input[piece] == '') {
-					// double dollar signs escape to make math centered
-					isMath = !isMath;
-					isCentered = !isCentered;
+			while ((index = input.indexOf('$', index+1)) != -1) {
+				/* ESCAPES */
+				if (charExists(input, index-1, '\\')) {
+					continue;
 				}
 
-				if (isMath) {
-					var rendered = katex.renderToString(strip(input[piece]));
-
-					if (isCentered) {
-						output += '<div class="text-center">' + rendered + '</div>';
-					} else {
-						output += rendered;
-					}
-
-					isCentered = false;
-
-					
-				} else {
-					output += input[piece];
-
-					if (input[piece].endsWith('\\')) {
-						output += input[piece].substring(0,input[piece].length-1) + '$';
-						continue;
-					}
+				/* DOUBLE SIGNS */
+				var centeredToken = false;
+				if (charExists(input, index+1, '$')) {
+					centeredToken = centeredMathMode || !charExists(input, index+2, '$') || index+1 == input.length-1;
 				}
 
-				isMath = !isMath;
+				var segment = input.slice(prevIndex + 1, index);
+
+				/* CASES */
+				if (normalMathMode) { // starting in math mode
+					output += renderMath(segment);
+					normalMathMode = false;
+				}
+				else if (centeredMathMode) { // starting in centered mode
+					output += renderCenteredMath(segment);
+					centeredMathMode = false;
+				}
+				else { // starting in normal mode
+					output += segment;
+					if (centeredToken) { centeredMathMode = true; }
+					else { normalMathMode = true; }
+				}
+
+				if (centeredToken) { index++; }
+				prevIndex = index;
 			}
 
-			$('#output').html(output);
-		} catch (err) {
+			var segment = input.slice(prevIndex + 1);
+			if (normalMathMode) { output += renderMath(segment); }
+			else if (centeredMathMode) { output += renderCenteredMath(segment); }
+			else { output += segment; }
+
+			$('#output').html(output.split('\\$').join('$'));
+		}
+		catch (err) {
 			showError(err.message);
 		}
-	};
-
+	}
+	
 	// autofocus
 	$('#tex').focus();
 
