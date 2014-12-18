@@ -15,6 +15,10 @@ $(document).ready(function() {
 		return index >= 0 && index < str.length && str.charAt(index) == value;
 	};
 
+	function replaceAll(string, find, replace) {
+		return string.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+	}
+
 	var render = function() {
 		var input = $('#input').val();
 		
@@ -64,6 +68,6 @@ $(document).ready(function() {
 		else if (centeredMathMode) { output += renderCenteredMath(segment); }
 		else { output += segment; }
 
-		return output;
+		return output.split('\\$').join('$');
 	};
 });
