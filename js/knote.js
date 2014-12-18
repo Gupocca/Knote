@@ -3,18 +3,6 @@ var reader = new stmd.DocParser();
 var defaultNotepad = 'default';
 var currentNotepad = defaultNotepad;
 
-// sanitization
-var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
-var tagOrComment = new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b'+tagBody+'>[\\s\\S]*?</script\\s*|style\\b'+tagBody +'>[\\s\\S]*?</style\\s*|/?[a-z]'+tagBody+')>','gi');
-function removeTags(html) {
-	var oldHtml;
-	do {
-		oldHtml = html;
-		html = html.replace(tagOrComment, '');
-	} while (html !== oldHtml);
-	return html.replace(/</g, '&lt;');
-}
-
 // bulk of the code
 $(document).ready(function() {
 
@@ -271,7 +259,7 @@ $(document).ready(function() {
 	}
 
 	var renderCenteredMath = function(data) {
-		return '<div class="text-center">' + katex.renderToString(strip(data)) + '</div>';
+		return '<div class="text-center">' + katex.renderToString('\\displaystyle {'+strip(data)+'}') + '</div>';
 	}
 
 	var charExists = function(str, index, value) {
@@ -351,3 +339,16 @@ $(document).ready(function() {
 	$('#render').click(renderTex);
 	$('#tex').bind('keydown', 'ctrl+return', renderTex);
 });
+
+// sanitization
+var tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
+var tagOrComment = new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b'+tagBody+'>[\\s\\S]*?</script\\s*|style\\b'+tagBody +'>[\\s\\S]*?</style\\s*|/?[a-z]'+tagBody+')>','gi');
+
+function removeTags(html) {
+	var oldHtml;
+	do {
+		oldHtml = html;
+		html = html.replace(tagOrComment, '');
+	} while (html !== oldHtml);
+	return html.replace(/</g, '&lt;');
+}
