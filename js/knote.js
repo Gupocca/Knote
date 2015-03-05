@@ -13,7 +13,7 @@ $(document).ready(function () {
     client = new Dropbox.Client({key: "7nj69doyzp49ge1"});
     allData = null;
 
-    getNotepadNames = function () {
+    function getNotepadNames() {
         var i, names, results, notepadTable;
         if (allData === null) {
             return '';
@@ -31,9 +31,9 @@ $(document).ready(function () {
 
             return names;
         }
-    };
+    }
 
-    populateNotepad = function () {
+    function populateNotepad() {
         var names, incoming;
 
         // check if we're using the default notepad
@@ -58,9 +58,9 @@ $(document).ready(function () {
         }
 
         renderNotepadSelection();
-    };
+    }
 
-    renderNotepadSelection = function () {
+    function renderNotepadSelection() {
         var names = getNotepadNames(), output = '<ul>', name, i;
 
         for (i = 0; i < names.length; i++) {
@@ -92,13 +92,13 @@ $(document).ready(function () {
             populateNotepad();
             return false;
         });
-    };
+    }
 
-    isEmptyOrSpaces = function (str) {
+    function isEmptyOrSpaces (str) {
         return str === null || str.match(/^ *$/) !== null;
-    };
+    }
 
-    createNewNotepad = function () {
+    function createNewNotepad() {
         var name = $('#new-notepad-name').val();
         $('#new-notepad-name').val('');
 
@@ -112,21 +112,21 @@ $(document).ready(function () {
             setData(name, '');
             renderNotepadSelection();
         }
-    };
+    }
 
     $('#notepad-creation').submit(function () {
         createNewNotepad();
         return false;
     });
 
-    showError = function (err) {
+    function showError(err) {
         $('#errors').css('display', 'block');
         $('#alert').html("<strong>Error!</strong> " + err);
-    };
+    }
 
-    hideError = function () {
+    function hideError() {
         $('#errors').css('display', 'none');
-    };
+    }
 
     client.authenticate({interactive: false}, function (error) {
         if (error) {
@@ -135,13 +135,13 @@ $(document).ready(function () {
         }
     });
 
-    checkAuth = function () {
+    function checkAuth() {
         if (client.isAuthenticated()) {
             $('#dropbox').css('display', 'none');
             $('#app').css('display', 'block');
             $('#current-notepad').css('display', 'inline-block');
         }
-    };
+    }
 
     $('#dropbox-button').click(function () {
         client.authenticate({}, function (error) {
@@ -153,7 +153,7 @@ $(document).ready(function () {
         });
     });
 
-    openDataChannels = function () {
+    function openDataChannels() {
         console.log("Channels");
         var datastoreManager = client.getDatastoreManager();
         datastoreManager.openDefaultDatastore(function (error, datastore) {
@@ -169,9 +169,9 @@ $(document).ready(function () {
 
             populateNotepad();
         });
-    };
+    }
 
-    setData = function (key, newData) {
+    function setData(key, newData) {
         var notepadTable, results, notepad;
 
         if (allData === null) {
@@ -192,9 +192,9 @@ $(document).ready(function () {
                 created: new Date()
             });
         }
-    };
+    }
 
-    getData = function (key) {
+    function getData(key) {
         var notepadTable, results;
 
         if (allData === null) {
@@ -208,9 +208,9 @@ $(document).ready(function () {
             return results[0].get('data');
         }
         return '';
-    };
+    }
 
-    deleteNotepad = function (key) {
+    function deleteNotepad(key) {
         var notepadTable, results;
 
         if (allData === null) {
@@ -223,16 +223,16 @@ $(document).ready(function () {
         if (results.length > 0) {
             results[0].deleteRecord();
         }
-    };
+    }
 
-    // var deleteAllNotepads = function (key) {
+    // function deleteAllNotepads(key) {
     //     var i, names = getNotepadNames();
     //     for (i = 0; i < names.length; i++) {
     //         deleteNotepad(names[i]);
     //     }
-    // };
+    // }
 
-    isExistingNotepad = function (key) {
+    function isExistingNotepad(key) {
         var notepadTable, results;
 
         if (allData === null) {
@@ -242,32 +242,32 @@ $(document).ready(function () {
         notepadTable = allData.getTable('notepads');
         results = notepadTable.query({padname: key});
         return results.length > 0;
-    };
+    }
 
-    // utility function
-    strip = function (html) {
+    function strip(html) {
         var tmp = document.createElement("div");
         tmp.innerHTML = html;
         return tmp.textContent || tmp.innerText || "";
-    };
+    }
 
     String.prototype.endsWith = function (suffix) {
         return this.indexOf(suffix, this.length - suffix.length) !== -1;
     };
 
-    renderMath = function (data) {
+    function renderMath(data) {
         return katex.renderToString(strip(data));
-    };
+    }
 
-    renderCenteredMath = function (data) {
+    function renderCenteredMath(data) {
         return '<div class="text-center">' + katex.renderToString('\\displaystyle {' + strip(data) + '}') + '</div>';
-    };
+    }
 
-    charExists = function (str, index, value) {
+    function charExists(str, index, value) {
         return index >= 0 && index < str.length && str.charAt(index) === value;
-    };
+    }
 
-    renderTex = function () {
+    // TODO: reduce complexity of this function
+    function renderTex() {
         var input, index, prevIndex, normalMathMode, centeredMathMode, output, centeredToken, segment;
         hideError();
 
@@ -332,7 +332,7 @@ $(document).ready(function () {
         } catch (err) {
             showError(err.message);
         }
-    };
+    }
 
     checkAuth();
     openDataChannels();
@@ -349,7 +349,7 @@ $(document).ready(function () {
 tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
 tagOrComment = new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*|style\\b' + tagBody  + '>[\\s\\S]*?</style\\s*|/?[a-z]' + tagBody + ')>', 'gi');
 
-removeTags = function (html) {
+function removeTags(html) {
     'use strict';
     var oldHtml;
     do {
@@ -357,4 +357,4 @@ removeTags = function (html) {
         html = html.replace(tagOrComment, '');
     } while (html !== oldHtml);
     return html.replace(/</g, '&lt;');
-};
+}
