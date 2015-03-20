@@ -3,11 +3,12 @@ function showError(err) {
     $('#alert').html('<strong>Error!</strong> ' + err);
 }
 
-function DataClient(apiKey, authCallback) {
+function DataClient(apiKey, changeCallback, authCallback) {
     console.log('creating DataClient');
     this.client = new Dropbox.Client({key: apiKey});
-    console.log(this.client);
+
     this.authCallback = authCallback;
+    this.changeCallback = changeCallback;
 
     this.data = null;
     this.notepads = null;
@@ -15,16 +16,19 @@ function DataClient(apiKey, authCallback) {
     
     console.log('beginning authentication');
     this.authenticate(false);
+
+    if (this.client.isAuthenticated()) {
+        this.initialize();
+    }
 }
 
 DataClient.prototype.authenticate = function(interactive) {
-    var client = this.client;
-    var callback = this.authCallback;
+    var _this = this;
     var doInteractively = (arguments.length == 0) ? true : interactive;
 
     this.client.authenticate({interactive: doInteractively}, function(error) {
         console.log('auth: error = ' + error);
-        callback(error, client.isAuthenticated());
+        _this.authCallback(error, _this.client.isAuthenticated());
     });
 }
 
@@ -36,27 +40,38 @@ DataClient.prototype.initialize = function() {
         return;
     }
 
+    var _this = this;
     var datastoreManager = this.client.getDatastoreManager();
+
     datastoreManager.openDefaultDatastore(function (error, datastore) {
         if (error) {
             showError('Unable to access data.');
         }
 
-        this.data = datastore;
-        this.notepads = this.data.getTable('notepads');
-        this.initialized = true;
+        _this.data = datastore;
+        _this.notepads = _this.data.getTable('notepads');
+        _this.initialized = true;
+        _this.changeCallback(_this);
     });
-    
-    console.log('initialized = ' + this.initialized);
 }
 
 DataClient.prototype.addChangedListener = function(callback) {
-    this.data.recordsChanged.addListener(callback);
-    callback();
+    var _this = this;
+
+    this.data.recordsChanged.addListener(function() {
+        callback(_this);
+    });
+
+    callback(this);
 };
 
-DataClient.prototype.getPad = function() {
-    
+DataClient.prototype.getPad = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+    return (results.length > 0) ? results[0].get('data') : '';
 };
 
 DataClient.prototype.setPad = function() {
@@ -71,8 +86,8 @@ DataClient.prototype.getPadNames = function () {
 
     results = this.notepads.query({exists: true});
     names = results.map(function (x) {
-        x.get('padname');
-    })
+        return x.get('padname');
+    });
     
     return names;
 };
@@ -85,15 +100,53 @@ DataClient.prototype.deletePad = function() {
 
 };
 
-var client = new DataClient('7nj69doyzp49ge1', function(error, isAuthenticated) {
-    console.log('isAuthenticated = ' + isAuthenticated);
+var defaultNotepad = 'default';
+var currentNotepad = defaultNotepad;
 
-    if (error) {
-        showError('Unable to authenticate.');
-        $('#dropbox-button').addClass('disabled');
-    } else if (isAuthenticated) {
-        $('#dropbox').css('display', 'none');
-        $('#app').css('display', 'block');
-        $('#current-notepad').css('display', 'inline-block');
+$(document).ready(function () {
+    function populateNotepad(client) {
+        console.log('populating notepad');
+        var names, incoming;
+
+        // check if we're using the default notepad
+        if (currentNotepad === defaultNotepad) {
+            names = client.getPadNames();
+            if (names.length > 0) {
+                currentNotepad = names[0];
+            } else {
+                // there are no notepads; create the default one
+                $.get('defaultFile.md', function (input) {
+                    client.setPad(defaultNotepad, input);
+                });
+            }
+        }
+
+        $('#current-notepad').text(currentNotepad);
+        incoming = client.getPad(currentNotepad);
+        if (incoming !== $('#tex').val()) {
+            $('#tex').val(client.getPad(currentNotepad));
+            // renderTex();
+        }
+
+        // renderNotepadSelection();
     }
+
+    var client = new DataClient('7nj69doyzp49ge1', populateNotepad, function(error, isAuthenticated) {
+        console.log('isAuthenticated = ' + isAuthenticated);
+
+        if (error) {
+            showError('Unable to authenticate.');
+            $('#dropbox-button').addClass('disabled');
+        } else if (isAuthenticated) {
+            $('#dropbox').css('display', 'none');
+            $('#app').css('display', 'block');
+            $('#current-notepad').css('display', 'inline-block');
+        }
+    });
+
+    $('#dropbox-button').click(function () { 
+        client.authenticate();
+        client.initialize();
+        client.addChangedListener(populateNotepad);
+    });
 });
