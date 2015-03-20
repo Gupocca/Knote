@@ -180,12 +180,8 @@ function Renderer() {
     this.reader = new stmd.DocParser();
 }
 
-Renderer.prototype.renderMath = function(input) {
-    return katex.renderToString(input.strip());
-}
-
-Renderer.prototype.renderCenteredMath = function(input) {
-    return '<div class="text-center">' + katex.renderToString('\\displaystyle {' + input.strip() + '}') + '</div>';
+Renderer.prototype.renderMath = function(input, centered) {
+    return katex.renderToString(input.strip(), { displayMode: centered });
 }
 
 Renderer.prototype.render = function(input) {
@@ -205,10 +201,10 @@ Renderer.prototype.render = function(input) {
 
     function renderCases() {
         if (normalMathMode) { // starting in math mode
-            output += _this.renderMath(segment);
+            output += _this.renderMath(segment, false);
             normalMathMode = false;
         } else if (centeredMathMode) { // starting in centered mode
-            output += _this.renderCenteredMath(segment);
+            output += _this.renderMath(segment, true);
             centeredMathMode = false;
         } else { // starting in normal mode
             output += segment;
