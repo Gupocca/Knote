@@ -1,3 +1,5 @@
+if ( typeof DEBUG === "undefined" ) DEBUG = true;
+
 /* === Utility Functions === */
 var util = {
     tagBody: '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
@@ -199,6 +201,7 @@ Renderer.prototype.render = function(input) {
     prevIndex = -1;
     normalMathMode = false;
     centeredMathMode = false;
+    centeredToken = false;
     output = '';
     _this = this;
 
