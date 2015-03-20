@@ -15,6 +15,9 @@ var util = {
         $('#errors').css('display', 'block');
         $('#alert').html('<strong>Error!</strong> ' + err);
     },
+    hideError: function() {
+        $('#errors').css('display', 'none');
+    },
     isEmptyOrSpaces: function(str) {
         return str === null || str.match(/^ *$/) !== null;
     }
@@ -177,11 +180,91 @@ function Renderer() {
     this.reader = new stmd.DocParser();
 }
 
+Renderer.prototype.renderMath = function(input) {
+    return katex.renderToString(input.strip());
+}
+
+Renderer.prototype.renderCenteredMath = function(input) {
+    return '<div class="text-center">' + katex.renderToString('\\displaystyle {' + input.strip() + '}') + '</div>';
+}
+
+Renderer.prototype.render = function(input) {
+    console.log('rendering');
+    input = input.split('\\\$').join('\\\\\$');
+    input = this.writer.renderBlock(this.reader.parse(input));
+
+    index = -1;
+    prevIndex = -1;
+    normalMathMode = false;
+    centeredMathMode = false;
+    output = '';
+
+    while ((index = input.indexOf('$', index + 1)) !== -1) {
+        /* ESCAPES */
+        if (input.charExists(index - 1, '\\')) {
+            continue;
+        }
+
+        /* DOUBLE SIGNS */
+        centeredToken = false;
+        if (input.charExists(index + 1, '$')) {
+            centeredToken = centeredMathMode || !input.charExists(index + 2, '$') || index + 1 === input.length - 1;
+        }
+
+        segment = input.slice(prevIndex + 1, index);
+
+        /* CASES */
+        if (normalMathMode) { // starting in math mode
+            output += this.renderMath(segment);
+            normalMathMode = false;
+        } else if (centeredMathMode) { // starting in centered mode
+            output += this.renderCenteredMath(segment);
+            centeredMathMode = false;
+        } else { // starting in normal mode
+            output += segment;
+            if (centeredToken) {
+                centeredMathMode = true;
+            } else {
+                normalMathMode = true;
+            }
+        }
+
+        if (centeredToken) { index++; }
+        prevIndex = index;
+    }
+
+    segment = input.slice(prevIndex + 1);
+
+    if (normalMathMode) {
+        output += this.renderMath(segment);
+    } else if (centeredMathMode) {
+        output += this.renderCenteredMath(segment);
+    } else {
+        output += segment;
+    }
+
+    return output.split('\\$').join('$');
+};
+
 /* === Main Execution === */
 var defaultNotepad = 'default';
 var currentNotepad = defaultNotepad;
 
 $(document).ready(function () {
+    var renderer = new Renderer();
+
+    function renderAction() {
+        try {
+            util.hideError();
+            var input = $('#tex').val();
+
+            client.setPad(currentNotepad, input);
+            $('#output').html(renderer.render(input));
+        } catch (err) {
+            util.showError(err.message);
+        }
+    }
+
     function populateNotepad(client) {
         console.log('populating notepad');
         var names, incoming;
@@ -203,7 +286,7 @@ $(document).ready(function () {
         incoming = client.getPad(currentNotepad);
         if (incoming !== $('#tex').val()) {
             $('#tex').val(client.getPad(currentNotepad));
-            // renderTex();
+            renderAction();
         }
 
         renderNotepadSelector(client);
@@ -255,6 +338,9 @@ $(document).ready(function () {
             $('#current-notepad').css('display', 'inline-block');
         }
     });
+
+    $('#render').click(renderAction);
+    $('#tex').bind('keydown', 'ctrl+return', renderAction);
 
     $('#dropbox-button').click(function () { 
         client.authenticate();
