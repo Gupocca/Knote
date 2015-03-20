@@ -1,79 +1,314 @@
-var writer = new stmd.HtmlRenderer();
-var reader = new stmd.DocParser();
-var defaultNotepad = 'default';
-var currentNotepad = defaultNotepad;
+/* === Utility Functions === */
+var util = {
+    tagBody: '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
+    tagOrComment: new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b' + this.tagBody + '>[\\s\\S]*?</script\\s*|style\\b' + this.tagBody  + '>[\\s\\S]*?</style\\s*|/?[a-z]' + this.tagBody + ')>', 'gi'),
+    removeTags: function(html) {
+        'use strict';
+        var oldHtml;
+        do {
+            oldHtml = html;
+            html = html.replace(this.tagOrComment, '');
+        } while (html !== oldHtml);
+        return html.replace(/</g, '&lt;');
+    },
+    showError: function(err) {
+        $('#errors').css('display', 'block');
+        $('#alert').html('<strong>Error!</strong> ' + err);
+    },
+    hideError: function() {
+        $('#errors').css('display', 'none');
+    },
+    isEmptyOrSpaces: function(str) {
+        return str === null || str.match(/^ *$/) !== null;
+    }
+}
 
-var tagBody, tagOrComment, removeTags;
+/* === String Extensions === */
+String.prototype.endsWith = function (suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
 
-// bulk of the code
-$(document).ready(function () {
-    'use strict';
-    var client, allData, getNotepadNames, populateNotepad, renderNotepadSelection, isEmptyOrSpaces, createNewNotepad, checkAuth, showError, hideError, openDataChannels, setData, getData, deleteNotepad, isExistingNotepad, strip, renderMath, renderCenteredMath, charExists, renderTex;
+String.prototype.charExists = function(index, value) {
+    return index >= 0 && index < this.length && this.charAt(index) === value;
+}
 
-    client = new Dropbox.Client({key: "7nj69doyzp49ge1"});
-    allData = null;
+String.prototype.strip = function() {
+    var tmp = document.createElement("div");
+    tmp.innerHTML = this;
+    return tmp.textContent || tmp.innerText || "";
+}
 
-    function getNotepadNames() {
-        var i, names, results, notepadTable;
-        if (allData === null) {
-            return '';
+/* === DataClient === */
+function DataClient(apiKey, changeCallback, authCallback) {
+    console.log('creating DataClient');
+    this.client = new Dropbox.Client({key: apiKey});
+
+    this.authCallback = authCallback;
+    this.changeCallback = changeCallback;
+
+    this.data = null;
+    this.notepads = null;
+    this.initialized = false;
+    
+    console.log('beginning authentication');
+    this.authenticate(false);
+
+    if (this.client.isAuthenticated()) {
+        this.initialize();
+    }
+}
+
+DataClient.prototype.authenticate = function(interactive) {
+    var _this = this;
+    var doInteractively = (arguments.length == 0) ? true : interactive;
+
+    this.client.authenticate({interactive: doInteractively}, function(error) {
+        console.log('auth: error = ' + error);
+        _this.authCallback(error, _this.client.isAuthenticated());
+    });
+}
+
+DataClient.prototype.initialize = function() {
+    console.log('beginning initialization');
+    
+    if (!this.client.isAuthenticated()) {
+        console.log('error: not authenticated');
+        return;
+    }
+
+    var _this = this;
+    var datastoreManager = this.client.getDatastoreManager();
+
+    datastoreManager.openDefaultDatastore(function (error, datastore) {
+        if (error) {
+            util.showError('Unable to access data.');
         }
 
-        notepadTable = allData.getTable('notepads');
-        results = notepadTable.query({exists: true});
+        _this.data = datastore;
+        _this.notepads = _this.data.getTable('notepads');
+        _this.initialized = true;
+        _this.changeCallback(_this);
+        _this.addChangedListener(_this.changeCallback);
+    });
+}
 
-        if (results.length > 0) {
-            names = [];
+DataClient.prototype.addChangedListener = function(callback) {
+    var _this = this;
+    console.log('adding changed listener');
 
-            for (i = 0; i < results.length; i++) {
-                names[i] = results[i].get('padname');
+    this.data.recordsChanged.addListener(function() {
+        callback(_this);
+    });
+
+    callback(this);
+};
+
+DataClient.prototype.getPad = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+    return (results.length > 0) ? results[0].get('data') : '';
+};
+
+DataClient.prototype.setPad = function(key, newData) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+
+    if (results.length > 0) {
+        results[0].set('data', newData);
+    } else {
+        this.notepads.insert({
+            padname: key,
+            data: newData,
+            exists: true,
+            created: new Date()
+        });
+    }
+};
+
+DataClient.prototype.createPad = function(key) {
+    if (util.isEmptyOrSpaces(key)) {
+        return;
+    }
+    if (this.padExists(key)) {
+        alert('notepad already exists');
+    } else {
+        this.setPad(key, '');
+    }
+};
+
+DataClient.prototype.getPadNames = function () {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({exists: true});
+    return results.map(function (x) {
+        return x.get('padname');
+    });
+};
+
+DataClient.prototype.padExists = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+    return results.length > 0;
+};
+
+DataClient.prototype.deletePad = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+
+    if (results.length > 0) {
+        results[0].deleteRecord();
+    }
+};
+
+/* === Renderer === */
+function Renderer() {
+    this.writer = new stmd.HtmlRenderer();
+    this.reader = new stmd.DocParser();
+}
+
+Renderer.prototype.renderMath = function(input) {
+    return katex.renderToString(input.strip());
+}
+
+Renderer.prototype.renderCenteredMath = function(input) {
+    return '<div class="text-center">' + katex.renderToString('\\displaystyle {' + input.strip() + '}') + '</div>';
+}
+
+Renderer.prototype.render = function(input) {
+    console.log('rendering');
+
+    input = util.removeTags(input);
+    input = input.split('\\\$').join('\\\\\$');
+    input = this.writer.renderBlock(this.reader.parse(input));
+
+    index = -1;
+    prevIndex = -1;
+    normalMathMode = false;
+    centeredMathMode = false;
+    centeredToken = false;
+    output = '';
+    _this = this;
+
+    function renderCases() {
+        if (normalMathMode) { // starting in math mode
+            output += _this.renderMath(segment);
+            normalMathMode = false;
+        } else if (centeredMathMode) { // starting in centered mode
+            output += _this.renderCenteredMath(segment);
+            centeredMathMode = false;
+        } else { // starting in normal mode
+            output += segment;
+            if (centeredToken) {
+                centeredMathMode = true;
+            } else {
+                normalMathMode = true;
             }
-
-            return names;
         }
     }
 
-    function populateNotepad() {
+    while ((index = input.indexOf('$', index + 1)) !== -1) {
+        centeredToken = false;
+
+        // escaped
+        if (input.charExists(index - 1, '\\')) {
+            continue;
+        }
+
+        // double signs
+        if (input.charExists(index + 1, '$')) {
+            centeredToken = centeredMathMode || !input.charExists(index + 2, '$') || index + 1 === input.length - 1;
+        }
+
+        segment = input.slice(prevIndex + 1, index);
+        renderCases();
+
+        if (centeredToken) { index++; }
+        prevIndex = index;
+    }
+
+    segment = input.slice(prevIndex + 1);
+    renderCases();
+
+    return output.split('\\$').join('$');
+};
+
+/* === Main Execution === */
+var defaultNotepad = 'default';
+var currentNotepad = defaultNotepad;
+var lastSave = '';
+
+$(document).ready(function () {
+    var renderer = new Renderer();
+
+    function renderAction() {
+        try {
+            util.hideError();
+
+            var input = $('#tex').val();
+            lastSave = input;
+
+            client.setPad(currentNotepad, input);
+            $('#output').html(renderer.render(input));
+        } catch (err) {
+            util.showError(err.message);
+        }
+    }
+
+    function populateNotepad(client) {
+        console.log('populating notepad');
         var names, incoming;
 
         // check if we're using the default notepad
         if (currentNotepad === defaultNotepad) {
-            names = getNotepadNames();
+            names = client.getPadNames();
             if (names.length > 0) {
                 currentNotepad = names[0];
             } else {
                 // there are no notepads; create the default one
                 $.get('defaultFile.md', function (input) {
-                    setData(defaultNotepad, input);
+                    client.setPad(defaultNotepad, input);
                 });
             }
         }
 
         $('#current-notepad').text(currentNotepad);
-
-        incoming = getData(currentNotepad);
-        if (incoming !== $('#tex').val()) {
-            $('#tex').val(getData(currentNotepad));
-            renderTex();
+        incoming = client.getPad(currentNotepad);
+        if (incoming !== $('#tex').val() && incoming != lastSave) {
+            $('#tex').val(incoming);
+            renderAction();
         }
 
-        renderNotepadSelection();
+        renderNotepadSelector(client);
     }
 
-    function renderNotepadSelection() {
-        var names = getNotepadNames(), output = '<ul>', name, i;
+    function renderNotepadSelector(client) {
+        var names = client.getPadNames();
 
-        for (i = 0; i < names.length; i++) {
-            name = removeTags(names[i]);
-            output += '<li><a class="swap-notepad" href="#" data-dismiss="modal">' + name + '</a>'
+        var list = names.map(function(x) {
+            var name = util.removeTags(x);
+            return '<li><a class="swap-notepad" href="#" data-dismiss="modal">' + name + '</a>'
                     + '<a class="remove-notepad" href="#" data-notepad="' + name + '"><i class="fa fa-times"></i></a></li>';
-        }
-        output += '</ul>';
-        $('#notepad-selection').html(output);
+        }).join('');
+
+        $('#notepad-selection').html('<ul>' + list + '</ul>');
 
         $('#notepad-selection li a.swap-notepad').click(function () {
             currentNotepad = $(this).text();
-            populateNotepad();
+            populateNotepad(client);
             $('#notepadModal').modal('hide');
             return false;
         });
@@ -86,275 +321,40 @@ $(document).ready(function () {
                 if (name === currentNotepad) {
                     currentNotepad = defaultNotepad;
                 }
-                deleteNotepad(name);
+                client.deletePad(name);
             }
 
-            populateNotepad();
+            populateNotepad(client);
             return false;
         });
     }
 
-    function isEmptyOrSpaces (str) {
-        return str === null || str.match(/^ *$/) !== null;
-    }
+    var client = new DataClient('7nj69doyzp49ge1', populateNotepad, function(error, isAuthenticated) {
+        console.log('isAuthenticated = ' + isAuthenticated);
 
-    function createNewNotepad() {
-        var name = $('#new-notepad-name').val();
-        $('#new-notepad-name').val('');
-
-        if (isEmptyOrSpaces(name)) {
-            return;
-        }
-
-        if (isExistingNotepad(name)) {
-            alert("notepad already exists");
-        } else {
-            setData(name, '');
-            renderNotepadSelection();
-        }
-    }
-
-    $('#notepad-creation').submit(function () {
-        createNewNotepad();
-        return false;
-    });
-
-    function showError(err) {
-        $('#errors').css('display', 'block');
-        $('#alert').html("<strong>Error!</strong> " + err);
-    }
-
-    function hideError() {
-        $('#errors').css('display', 'none');
-    }
-
-    client.authenticate({interactive: false}, function (error) {
         if (error) {
-            showError("Unable to authenticate.");
+            util.showError('Unable to authenticate.');
             $('#dropbox-button').addClass('disabled');
-        }
-    });
-
-    function checkAuth() {
-        if (client.isAuthenticated()) {
+        } else if (isAuthenticated) {
             $('#dropbox').css('display', 'none');
             $('#app').css('display', 'block');
             $('#current-notepad').css('display', 'inline-block');
         }
-    }
-
-    $('#dropbox-button').click(function () {
-        client.authenticate({}, function (error) {
-            if (error) {
-                showError('Unable to authenticate.');
-                $('#dropbox-button').addClass('disabled');
-            }
-            checkAuth();
-        });
     });
 
-    function openDataChannels() {
-        console.log("Channels");
-        var datastoreManager = client.getDatastoreManager();
-        datastoreManager.openDefaultDatastore(function (error, datastore) {
-            if (error) {
-                showError("Unable to access data.");
-            }
+    $('#render').click(renderAction);
+    $('#tex').bind('keydown', 'ctrl+return', renderAction);
 
-            allData = datastore;
+    $('#dropbox-button').click(function () { 
+        client.authenticate();
+        client.initialize();
+    });
 
-            datastore.recordsChanged.addListener(function (event) {
-                populateNotepad();
-            });
-
-            populateNotepad();
-        });
-    }
-
-    function setData(key, newData) {
-        var notepadTable, results, notepad;
-
-        if (allData === null) {
-            return;
-        }
-
-        notepadTable = allData.getTable('notepads');
-        results = notepadTable.query({padname: key});
-
-        if (results.length > 0) {
-            notepad = results[0];
-            notepad.set('data', newData);
-        } else {
-            notepadTable.insert({
-                padname: key,
-                data: newData,
-                exists: true,
-                created: new Date()
-            });
-        }
-    }
-
-    function getData(key) {
-        var notepadTable, results;
-
-        if (allData === null) {
-            return '';
-        }
-
-        notepadTable = allData.getTable('notepads');
-        results = notepadTable.query({padname: key});
-
-        if (results.length > 0) {
-            return results[0].get('data');
-        }
-        return '';
-    }
-
-    function deleteNotepad(key) {
-        var notepadTable, results;
-
-        if (allData === null) {
-            return;
-        }
-
-        notepadTable = allData.getTable('notepads');
-        results = notepadTable.query({padname: key});
-
-        if (results.length > 0) {
-            results[0].deleteRecord();
-        }
-    }
-
-    // function deleteAllNotepads(key) {
-    //     var i, names = getNotepadNames();
-    //     for (i = 0; i < names.length; i++) {
-    //         deleteNotepad(names[i]);
-    //     }
-    // }
-
-    function isExistingNotepad(key) {
-        var notepadTable, results;
-
-        if (allData === null) {
-            return false;
-        }
-
-        notepadTable = allData.getTable('notepads');
-        results = notepadTable.query({padname: key});
-        return results.length > 0;
-    }
-
-    function strip(html) {
-        var tmp = document.createElement("div");
-        tmp.innerHTML = html;
-        return tmp.textContent || tmp.innerText || "";
-    }
-
-    String.prototype.endsWith = function (suffix) {
-        return this.indexOf(suffix, this.length - suffix.length) !== -1;
-    };
-
-    function renderMath(data) {
-        return katex.renderToString(strip(data));
-    }
-
-    function renderCenteredMath(data) {
-        return '<div class="text-center">' + katex.renderToString('\\displaystyle {' + strip(data) + '}') + '</div>';
-    }
-
-    function charExists(str, index, value) {
-        return index >= 0 && index < str.length && str.charAt(index) === value;
-    }
-
-    // TODO: reduce complexity of this function
-    function renderTex() {
-        var input, index, prevIndex, normalMathMode, centeredMathMode, output, centeredToken, segment;
-        hideError();
-
-        input = $('#tex').val();
-
-        setData(currentNotepad, input);
-        input = input.split('\\\$').join('\\\\\$');
-        input = writer.renderBlock(reader.parse(input));
-
-        index = -1;
-        prevIndex = -1;
-        normalMathMode = false;
-        centeredMathMode = false;
-        output = '';
-
-        try {
-            while ((index = input.indexOf('$', index + 1)) !== -1) {
-                /* ESCAPES */
-                if (charExists(input, index - 1, '\\')) {
-                    continue;
-                }
-
-                /* DOUBLE SIGNS */
-                centeredToken = false;
-                if (charExists(input, index + 1, '$')) {
-                    centeredToken = centeredMathMode || !charExists(input, index + 2, '$') || index + 1 === input.length - 1;
-                }
-
-                segment = input.slice(prevIndex + 1, index);
-
-                /* CASES */
-                if (normalMathMode) { // starting in math mode
-                    output += renderMath(segment);
-                    normalMathMode = false;
-                } else if (centeredMathMode) { // starting in centered mode
-                    output += renderCenteredMath(segment);
-                    centeredMathMode = false;
-                } else { // starting in normal mode
-                    output += segment;
-                    if (centeredToken) {
-                        centeredMathMode = true;
-                    } else {
-                        normalMathMode = true;
-                    }
-                }
-
-                if (centeredToken) { index++; }
-                prevIndex = index;
-            }
-
-            segment = input.slice(prevIndex + 1);
-
-            if (normalMathMode) {
-                output += renderMath(segment);
-            } else if (centeredMathMode) {
-                output += renderCenteredMath(segment);
-            } else {
-                output += segment;
-            }
-
-            $('#output').html(output.split('\\$').join('$'));
-        } catch (err) {
-            showError(err.message);
-        }
-    }
-
-    checkAuth();
-    openDataChannels();
-
-    // autofocus
-    $('#tex').focus();
-
-    // create bindings for rendering
-    $('#render').click(renderTex);
-    $('#tex').bind('keydown', 'ctrl+return', renderTex);
+    $('#notepad-creation').submit(function() {
+        var key = $('#new-notepad-name').val();
+        $('#new-notepad-name').val('');
+        client.createPad(key)
+        renderNotepadSelector(client);
+        return false;
+    });
 });
-
-// sanitization
-tagBody = '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*';
-tagOrComment = new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b' + tagBody + '>[\\s\\S]*?</script\\s*|style\\b' + tagBody  + '>[\\s\\S]*?</style\\s*|/?[a-z]' + tagBody + ')>', 'gi');
-
-function removeTags(html) {
-    'use strict';
-    var oldHtml;
-    do {
-        oldHtml = html;
-        html = html.replace(tagOrComment, '');
-    } while (html !== oldHtml);
-    return html.replace(/</g, '&lt;');
-}
