@@ -1,5 +1,3 @@
-if ( typeof DEBUG === "undefined" ) DEBUG = true;
-
 /* === Utility Functions === */
 var util = {
     tagBody: '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
