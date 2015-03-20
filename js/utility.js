@@ -190,6 +190,8 @@ Renderer.prototype.renderCenteredMath = function(input) {
 
 Renderer.prototype.render = function(input) {
     console.log('rendering');
+
+    input = util.removeTags(input);
     input = input.split('\\\$').join('\\\\\$');
     input = this.writer.renderBlock(this.reader.parse(input));
 
@@ -198,27 +200,14 @@ Renderer.prototype.render = function(input) {
     normalMathMode = false;
     centeredMathMode = false;
     output = '';
+    _this = this;
 
-    while ((index = input.indexOf('$', index + 1)) !== -1) {
-        /* ESCAPES */
-        if (input.charExists(index - 1, '\\')) {
-            continue;
-        }
-
-        /* DOUBLE SIGNS */
-        centeredToken = false;
-        if (input.charExists(index + 1, '$')) {
-            centeredToken = centeredMathMode || !input.charExists(index + 2, '$') || index + 1 === input.length - 1;
-        }
-
-        segment = input.slice(prevIndex + 1, index);
-
-        /* CASES */
+    function renderCases() {
         if (normalMathMode) { // starting in math mode
-            output += this.renderMath(segment);
+            output += _this.renderMath(segment);
             normalMathMode = false;
         } else if (centeredMathMode) { // starting in centered mode
-            output += this.renderCenteredMath(segment);
+            output += _this.renderCenteredMath(segment);
             centeredMathMode = false;
         } else { // starting in normal mode
             output += segment;
@@ -228,20 +217,30 @@ Renderer.prototype.render = function(input) {
                 normalMathMode = true;
             }
         }
+    }
+
+    while ((index = input.indexOf('$', index + 1)) !== -1) {
+        centeredToken = false;
+
+        // escaped
+        if (input.charExists(index - 1, '\\')) {
+            continue;
+        }
+
+        // double signs
+        if (input.charExists(index + 1, '$')) {
+            centeredToken = centeredMathMode || !input.charExists(index + 2, '$') || index + 1 === input.length - 1;
+        }
+
+        segment = input.slice(prevIndex + 1, index);
+        renderCases();
 
         if (centeredToken) { index++; }
         prevIndex = index;
     }
 
     segment = input.slice(prevIndex + 1);
-
-    if (normalMathMode) {
-        output += this.renderMath(segment);
-    } else if (centeredMathMode) {
-        output += this.renderCenteredMath(segment);
-    } else {
-        output += segment;
-    }
+    renderCases();
 
     return output.split('\\$').join('$');
 };
@@ -249,6 +248,7 @@ Renderer.prototype.render = function(input) {
 /* === Main Execution === */
 var defaultNotepad = 'default';
 var currentNotepad = defaultNotepad;
+var lastSave = '';
 
 $(document).ready(function () {
     var renderer = new Renderer();
@@ -256,7 +256,9 @@ $(document).ready(function () {
     function renderAction() {
         try {
             util.hideError();
+
             var input = $('#tex').val();
+            lastSave = input;
 
             client.setPad(currentNotepad, input);
             $('#output').html(renderer.render(input));
@@ -284,8 +286,8 @@ $(document).ready(function () {
 
         $('#current-notepad').text(currentNotepad);
         incoming = client.getPad(currentNotepad);
-        if (incoming !== $('#tex').val()) {
-            $('#tex').val(client.getPad(currentNotepad));
+        if (incoming !== $('#tex').val() && incoming != lastSave) {
+            $('#tex').val(incoming);
             renderAction();
         }
 
