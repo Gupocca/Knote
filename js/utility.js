@@ -13,8 +13,12 @@ var util = {
     showError: function(err) {
         $('#errors').css('display', 'block');
         $('#alert').html('<strong>Error!</strong> ' + err);
+    },
+    isEmptyOrSpaces: function(str) {
+        return str === null || str.match(/^ *$/) !== null;
     }
 }
+
 function DataClient(apiKey, changeCallback, authCallback) {
     console.log('creating DataClient');
     this.client = new Dropbox.Client({key: apiKey});
@@ -86,31 +90,72 @@ DataClient.prototype.getPad = function(key) {
     return (results.length > 0) ? results[0].get('data') : '';
 };
 
-DataClient.prototype.setPad = function() {
-    
-};
-
-DataClient.prototype.getPadNames = function () {
-    var results, names;
+DataClient.prototype.setPad = function(key, newData) {
     if (!this.initialized) {
         return '';
     }
 
-    results = this.notepads.query({exists: true});
-    names = results.map(function (x) {
+    var results = this.notepads.query({padname: key});
+
+    if (results.length > 0) {
+        results[0].set('data', newData);
+    } else {
+        this.notepads.insert({
+            padname: key,
+            data: newData,
+            exists: true,
+            created: new Date()
+        });
+    }
+};
+
+DataClient.prototype.createPad = function(key) {
+    if (util.isEmptyOrSpaces(key)) {
+        return;
+    }
+    if (this.padExists(key)) {
+        alert('notepad already exists');
+    } else {
+        this.setPad(key, '');
+    }
+};
+
+DataClient.prototype.getPadNames = function () {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({exists: true});
+    return results.map(function (x) {
         return x.get('padname');
     });
-    
-    return names;
 };
 
-DataClient.prototype.padExists = function() {
-    
+DataClient.prototype.padExists = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
+
+    var results = this.notepads.query({padname: key});
+    return results.length > 0;
 };
 
-DataClient.prototype.deletePad = function() {
+DataClient.prototype.deletePad = function(key) {
+    if (!this.initialized) {
+        return '';
+    }
 
+    var results = this.notepads.query({padname: key});
+
+    if (results.length > 0) {
+        results[0].deleteRecord();
+    }
 };
+
+function Renderer() {
+    this.writer = new stmd.HtmlRenderer();
+    this.reader = new stmd.DocParser();
+}
 
 var defaultNotepad = 'default';
 var currentNotepad = defaultNotepad;
@@ -169,7 +214,7 @@ $(document).ready(function () {
                 if (name === currentNotepad) {
                     currentNotepad = defaultNotepad;
                 }
-                deleteNotepad(name);
+                client.deletePad(name);
             }
 
             populateNotepad(client);
@@ -194,5 +239,13 @@ $(document).ready(function () {
         client.authenticate();
         client.initialize();
         client.addChangedListener(populateNotepad);
+    });
+
+    $('#notepad-creation').submit(function() {
+        var key = $('#new-notepad-name').val();
+        $('#new-notepad-name').val('');
+        client.createPad(key)
+        renderNotepadSelector(client);
+        return false;
     });
 });
