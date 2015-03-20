@@ -1,3 +1,4 @@
+/* === Utility Functions === */
 var util = {
     tagBody: '(?:[^"\'>]|"[^"]*"|\'[^\']*\')*',
     tagOrComment: new RegExp('<(?:!--(?:(?:-*[^->])*--+|-?)|script\\b' + this.tagBody + '>[\\s\\S]*?</script\\s*|style\\b' + this.tagBody  + '>[\\s\\S]*?</style\\s*|/?[a-z]' + this.tagBody + ')>', 'gi'),
@@ -19,6 +20,22 @@ var util = {
     }
 }
 
+/* === String Extensions === */
+String.prototype.endsWith = function (suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+String.prototype.charExists = function(index, value) {
+    return index >= 0 && index < this.length && this.charAt(index) === value;
+}
+
+String.prototype.strip = function() {
+    var tmp = document.createElement("div");
+    tmp.innerHTML = this;
+    return tmp.textContent || tmp.innerText || "";
+}
+
+/* === DataClient === */
 function DataClient(apiKey, changeCallback, authCallback) {
     console.log('creating DataClient');
     this.client = new Dropbox.Client({key: apiKey});
@@ -68,11 +85,13 @@ DataClient.prototype.initialize = function() {
         _this.notepads = _this.data.getTable('notepads');
         _this.initialized = true;
         _this.changeCallback(_this);
+        _this.addChangedListener(_this.changeCallback);
     });
 }
 
 DataClient.prototype.addChangedListener = function(callback) {
     var _this = this;
+    console.log('adding changed listener');
 
     this.data.recordsChanged.addListener(function() {
         callback(_this);
@@ -152,11 +171,13 @@ DataClient.prototype.deletePad = function(key) {
     }
 };
 
+/* === Renderer === */
 function Renderer() {
     this.writer = new stmd.HtmlRenderer();
     this.reader = new stmd.DocParser();
 }
 
+/* === Main Execution === */
 var defaultNotepad = 'default';
 var currentNotepad = defaultNotepad;
 
@@ -238,7 +259,6 @@ $(document).ready(function () {
     $('#dropbox-button').click(function () { 
         client.authenticate();
         client.initialize();
-        client.addChangedListener(populateNotepad);
     });
 
     $('#notepad-creation').submit(function() {
