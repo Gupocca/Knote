@@ -306,6 +306,7 @@ $(document).ready(function () {
             currentNotepad = $(this).text();
             populateNotepad(client);
             $('#notepadModal').modal('hide');
+            $('#tex').focus();
             return false;
         });
 
@@ -340,6 +341,7 @@ $(document).ready(function () {
 
     $('#render').click(renderAction);
     $('#tex').bind('keydown', 'ctrl+return', renderAction);
+    $('#tex').focus(); // autofocus
 
     $('#dropbox-button').click(function () { 
         client.authenticate();
